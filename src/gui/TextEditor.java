@@ -5,8 +5,13 @@
  */
 package gui;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,6 +27,8 @@ public class TextEditor extends javax.swing.JFrame {
      * Creates new form TextEditor
      */
     static int count,tabIndex;
+    static boolean fileNameCreated=false;
+    static File file;
     public TextEditor() {
         initComponents();
     }
@@ -118,7 +125,9 @@ public class TextEditor extends javax.swing.JFrame {
         int returnVal=fc.showOpenDialog(jMenu3);
         if(returnVal==JFileChooser.APPROVE_OPTION)
         {
-            File file=fc.getSelectedFile();
+            editingTextField.setText("");
+            fileNameCreated=true;
+            file=fc.getSelectedFile();
             jTabbedPane1.setTitleAt(tabIndex,file.getName());
             Scanner fileScanner = null;
             try 
@@ -141,12 +150,44 @@ public class TextEditor extends javax.swing.JFrame {
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
     
+            //Save File
+            
+            //first check whether filename already exists?
+            if(!fileNameCreated)
+            {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Specify a file to save");
+                int userSelection = fileChooser.showSaveDialog(this);
+                if(userSelection == JFileChooser.APPROVE_OPTION) 
+                {
+                    file = fileChooser.getSelectedFile();
+                    System.out.println("Saved as file: " + file.getAbsolutePath());
+                    jTabbedPane1.setTitleAt(tabIndex,file.getName());
+                }
+            }
+            
+        try 
+        {
+            writeToFile(editingTextField.getText());
+        } 
+        catch (IOException ex) 
+        {
+            Logger.getLogger(TextEditor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            
         
-
-
-        // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
+    private static void writeToFile(String string) throws IOException {
+    
+        //try with resources (new feature of java 8)
+        try (
+        BufferedReader reader = new BufferedReader(new StringReader(string));
+        PrintWriter writer = new PrintWriter(new FileWriter(file));
+    ) {
+        reader.lines().forEach(line -> writer.println(line));
+    }
+}
     /**
      * @param args the command line arguments
      */

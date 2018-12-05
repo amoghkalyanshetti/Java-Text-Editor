@@ -5,14 +5,9 @@
  */
 package gui;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import data.Data;
+import functions.menubar.FileMenuFunctions;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -26,11 +21,13 @@ public class TextEditor extends javax.swing.JFrame {
     /**
      * Creates new form TextEditor
      */
-    static int count,tabIndex;
-    static boolean fileNameCreated=false;
-    static File file;
+    static int count;
+    Data data;
+    FileMenuFunctions fileMenuFunctions;
     public TextEditor() {
         initComponents();
+        data=new Data();
+        fileMenuFunctions=new FileMenuFunctions();
     }
 
     /**
@@ -57,6 +54,7 @@ public class TextEditor extends javax.swing.JFrame {
         editingTextField.setColumns(20);
         editingTextField.setRows(5);
         editingTextField.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        editingTextField.setPreferredSize(new java.awt.Dimension(500, 700));
         jScrollPane2.setViewportView(editingTextField);
 
         jTabbedPane1.addTab("tab1", jScrollPane2);
@@ -98,13 +96,13 @@ public class TextEditor extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 979, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 402, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 26, Short.MAX_VALUE))
+                .addGap(0, 29, Short.MAX_VALUE))
         );
 
         pack();
@@ -126,23 +124,11 @@ public class TextEditor extends javax.swing.JFrame {
         if(returnVal==JFileChooser.APPROVE_OPTION)
         {
             editingTextField.setText("");
-            fileNameCreated=true;
-            file=fc.getSelectedFile();
-            jTabbedPane1.setTitleAt(tabIndex,file.getName());
-            Scanner fileScanner = null;
-            try 
-            {
-                fileScanner =new Scanner(file);
-            } 
-            catch (FileNotFoundException ex) 
-            {
-                Logger.getLogger(TextEditor.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            while(fileScanner.hasNextLine())
-            {
-                editingTextField.setText(editingTextField.getText()+fileScanner.nextLine()+"\n");
-            }
-            fileScanner.close();
+            data.setFileNameCreated(true);
+            data.setFile(fc.getSelectedFile());
+            jTabbedPane1.setTitleAt(data.getTabIndex(),data.getFile().getName());
+           //call to the below funtion will cause text from file to be copied to the editor
+            editingTextField=fileMenuFunctions.copyFileToEditor(editingTextField,data.getFile());
         }
         
         // TODO add your handling code here:
@@ -153,22 +139,22 @@ public class TextEditor extends javax.swing.JFrame {
             //Save File
             
             //first check whether filename already exists?
-            if(!fileNameCreated)
+            if(!data.isFileNameCreated())
             {
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setDialogTitle("Specify a file to save");
                 int userSelection = fileChooser.showSaveDialog(this);
                 if(userSelection == JFileChooser.APPROVE_OPTION) 
                 {
-                    file = fileChooser.getSelectedFile();
-                    System.out.println("Saved as file: " + file.getAbsolutePath());
-                    jTabbedPane1.setTitleAt(tabIndex,file.getName());
+                    data.setFile(fileChooser.getSelectedFile());
+                    System.out.println("Saved as file: " + data.getFile().getAbsolutePath());
+                    jTabbedPane1.setTitleAt(data.getTabIndex(),data.getFile().getName());
                 }
             }
             
         try 
         {
-            writeToFile(editingTextField.getText());
+            fileMenuFunctions.writeToFile(data.getFile(),editingTextField.getText());
         } 
         catch (IOException ex) 
         {
@@ -178,16 +164,7 @@ public class TextEditor extends javax.swing.JFrame {
         
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
-    private static void writeToFile(String string) throws IOException {
-    
-        //try with resources (new feature of java 8)
-        try (
-        BufferedReader reader = new BufferedReader(new StringReader(string));
-        PrintWriter writer = new PrintWriter(new FileWriter(file));
-    ) {
-        reader.lines().forEach(line -> writer.println(line));
-    }
-}
+
     /**
      * @param args the command line arguments
      */
@@ -199,7 +176,7 @@ public class TextEditor extends javax.swing.JFrame {
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
+                if ("Windows".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
@@ -230,7 +207,6 @@ public class TextEditor extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JMenuBar menuBar;
